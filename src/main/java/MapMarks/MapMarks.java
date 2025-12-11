@@ -7,10 +7,7 @@ import MapMarks.utils.ColorEnum;
 import MapMarks.utils.MapMarksTextureDatabase;
 import MapMarks.utils.SoundHelper;
 import basemod.BaseMod;
-import basemod.interfaces.AddAudioSubscriber;
-import basemod.interfaces.PostInitializeSubscriber;
-import basemod.interfaces.PostUpdateSubscriber;
-import basemod.interfaces.RenderSubscriber;
+import basemod.interfaces.*;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
@@ -30,7 +27,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 
 @SpireInitializer
-public class MapMarks implements PostInitializeSubscriber, PostUpdateSubscriber, RenderSubscriber, AddAudioSubscriber {
+public class MapMarks implements PostInitializeSubscriber, PostUpdateSubscriber, RenderSubscriber, AddAudioSubscriber, StartGameSubscriber {
     public static final Logger logger = LogManager.getLogger(MapMarks.class);
 
     public static void initialize() {
@@ -212,5 +209,11 @@ public class MapMarks implements PostInitializeSubscriber, PostUpdateSubscriber,
     @Override
     public void receiveAddAudio() {
         BaseMod.addAudio("MAP_MARKS_CLICK", "MapMarks/output_2.wav");
+    }
+
+    // If start a new game, clear the old map tile markers first
+    @Override
+    public void receiveStartGame() {
+
     }
 }
