@@ -8,7 +8,6 @@ import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import com.megacrit.cardcrawl.map.LegendItem;
-import easel.utils.EaselSoundHelper;
 
 import java.util.HashMap;
 
@@ -77,12 +76,6 @@ public class LegendItemPatches {
                         MapTileManager.highlightAllElite(true);
                 }));
             }
-//            this.items.add(new LegendItem(TEXT[0], ImageMaster.MAP_NODE_EVENT, TEXT[1], TEXT[2], 0));
-//            this.items.add(new LegendItem(TEXT[3], ImageMaster.MAP_NODE_MERCHANT, TEXT[4], TEXT[5], 1));
-//            this.items.add(new LegendItem(TEXT[6], ImageMaster.MAP_NODE_TREASURE, TEXT[7], TEXT[8], 2));
-//            this.items.add(new LegendItem(TEXT[9], ImageMaster.MAP_NODE_REST, TEXT[10], TEXT[11], 3));
-//            this.items.add(new LegendItem(TEXT[12], ImageMaster.MAP_NODE_ENEMY, TEXT[13], TEXT[14], 4));
-//            this.items.add(new LegendItem(TEXT[15], ImageMaster.MAP_NODE_ELITE, TEXT[16], TEXT[17], 5));
         }
     }
 
@@ -107,7 +100,6 @@ public class LegendItemPatches {
                         // Click finished
                         if (!h.isRightClickBlocked) {
                             h.rightClickCallback.run();
-//                            EaselSoundHelper.cawCaw();
                         }
                         else {
                             h.isRightClickBlocked = false;

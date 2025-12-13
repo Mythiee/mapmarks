@@ -7,15 +7,12 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.helpers.TipHelper;
-import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import easel.ui.AbstractWidget;
 import easel.ui.AnchorPosition;
 import easel.ui.InterpolationSpeed;
 import easel.ui.graphics.LayeredTextureWidget;
 import easel.utils.EaselInputHelper;
 import easel.utils.colors.EaselColors;
-
-import java.util.function.Consumer;
 
 public class LegendObject extends AbstractWidget<LegendObject> {
     private static final float WIDTH = 70;

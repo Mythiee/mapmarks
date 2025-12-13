@@ -2,18 +2,18 @@ package MapMarks;
 
 import MapMarks.ui.tiles.LargeMapTile;
 import MapMarks.ui.tiles.SmallMapTile;
-import MapMarks.utils.ColorDatabase;
 import MapMarks.utils.ColorEnum;
 import MapMarks.utils.SoundHelper;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
+import com.megacrit.cardcrawl.helpers.Hitbox;
+import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import com.megacrit.cardcrawl.map.MapEdge;
 import com.megacrit.cardcrawl.map.MapRoomNode;
 import com.megacrit.cardcrawl.rooms.AbstractRoom;
 import easel.ui.AnchorPosition;
 import easel.utils.EaselSoundHelper;
-import easel.utils.colors.EaselColors;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
@@ -62,17 +62,20 @@ public class MapTileManager {
         }
     }
 
-    private static HashMap<MapRoomNode, MapTileMapObject> tracked = new HashMap<>();
+    private static HashMap<String, MapTileMapObject> tracked = new HashMap<>(); // key: "x-y", value: MapTileMapObject
+
+    public static boolean isSaveLoaded = false;
 
     // TODO: lists for each type, to make accessing all of them of a particular type instant (e.g. using the legend)
 
     public static void track(MapRoomNode node) {
-        tracked.put(node, new MapTileMapObject(node));
+        tracked.put((node.x + "-" + node.y), new MapTileMapObject(node));
     }
 
     public static boolean shouldRenderLarge(MapRoomNode node) {
         // If current map node (we're already here), renders small
-        if (node.equals(AbstractDungeon.getCurrMapNode()))
+//        if (node.equals(AbstractDungeon.getCurrMapNode()))
+        if (node.x == AbstractDungeon.getCurrMapNode().x && node.y == AbstractDungeon.getCurrMapNode().y)
             return false;
 
         // If we're choosing the next room and the given node can be clicked on, renders large
@@ -84,28 +87,32 @@ public class MapTileManager {
 
 //        boolean completedRoomAndConnectable =  AbstractDungeon.getCurrRoom().phase.equals(AbstractRoom.RoomPhase.COMPLETE) && (normalConnection || wingedConnection);
 
-        if (completedRoom && normalConnection)
+        if (completedRoom && normalConnection) {
             return true;
+        }
 
         // If the node's hb is hovered, renders large
-        if (node.hb.hovered)
+        if (node.hb.hovered) {
             return true;
+        }
 
         // If we're on the floor 0 of an act (i.e. haven't picked on any map nodes yet for this generated map), all bottom floors should be pickable,
         // and thus should render large
-        if (!AbstractDungeon.firstRoomChosen && node.y == 0 && AbstractDungeon.getCurrRoom().phase == AbstractRoom.RoomPhase.COMPLETE)
+        if (!AbstractDungeon.firstRoomChosen && node.y == 0 && AbstractDungeon.getCurrRoom().phase == AbstractRoom.RoomPhase.COMPLETE) {
             return true;
+        }
 
         // If we're hovered on the legend item for this node, should render large
-        if (AbstractDungeon.dungeonMapScreen.map.legend.isIconHovered(node.getRoomSymbol(true)))
+        if (AbstractDungeon.dungeonMapScreen.map.legend.isIconHovered(node.getRoomSymbol(true))) {
             return true;
+        }
 
         // In case we missed some other cases, we'll just render it small for now (might want to make the fallback render large though)
         return false;
     }
 
     public static boolean isNodeHighlighted(MapRoomNode node) {
-        MapTileMapObject tileObject = tracked.get(node);
+        MapTileMapObject tileObject = tracked.get(node.x + "-" + node.y);
         if (tileObject != null)
             return tileObject.isHighlighted;
         else
@@ -113,17 +120,15 @@ public class MapTileManager {
     }
 
     public static boolean isNodeReachable(MapRoomNode node) {
-        MapTileMapObject tileObject = tracked.get(node);
+        MapTileMapObject tileObject = tracked.get(node.x + "-" + node.y);
         if (tileObject != null)
             return tileObject.isReachable;
         else
             return false;
     }
 
-
-
     public static Color getHighlightedNodeColor(MapRoomNode node) {
-        MapTileMapObject tileObject = tracked.get(node);
+        MapTileMapObject tileObject = tracked.get(node.x + "-" + node.y);
 
         if (tileObject != null) {
             return tileObject.smallTile.getBaseColor();
@@ -134,7 +139,7 @@ public class MapTileManager {
     }
 
     public static void tryRender(SpriteBatch sb, MapRoomNode node, float x, float y) {
-        MapTileMapObject tileObject = tracked.get(node);
+        MapTileMapObject tileObject = tracked.get(node.x + "-" + node.y);
         if (tileObject != null) {
             //tileObject.tile.anchoredAt(x + 67.0f * Settings.xScale, y + 60.0f * Settings.yScale, AnchorPosition.CENTER);
 
@@ -172,21 +177,21 @@ public class MapTileManager {
         inboundsMapTileMapObject = null;
 
 //        for (MapTileMapObject obj : tracked.values()) {
-        for (Map.Entry<MapRoomNode, MapTileMapObject> entry : tracked.entrySet()) {
+        for (Map.Entry<String, MapTileMapObject> entry : tracked.entrySet()) {
             entry.getValue().smallTile.update();
             entry.getValue().largeTile.update();
 
             // TODO: might need to verify that just checking against the small tile is fine here
             if (entry.getValue().smallTile.isMouseInContentBounds()) {
-                inboundsNode = entry.getKey();
+                String[] xy = entry.getKey().split("-");
+                inboundsNode = AbstractDungeon.map.get(Integer.parseInt(xy[1])).get(Integer.parseInt(xy[0]));
                 inboundsMapTileMapObject = entry.getValue();
             }
         }
     }
 
-    // --------------------------------------------------------------------------------
-
-    private static HashMap<MapRoomNode, HashSet<MapRoomNode>> reachableMap = new HashMap<>();
+    // key: x, y of current node, e.g: current node x: 1, y: 2, then the key is "1-2"
+    private static HashMap<String, HashSet<MapRoomNode>> reachableMap = new HashMap<>();
 
     // Collects all the map room nodes directly reachable from node from its .getEdges() list
     private static ArrayList<MapRoomNode> collectDirectChildren(MapRoomNode node, HashMap<Pair<Integer, Integer>, MapRoomNode> allNodes) {
@@ -206,13 +211,20 @@ public class MapTileManager {
 
         // For convenience, we make a map that lets us get a node just by its node.x, node.y position (since edges don't store nodes)
         HashMap<Pair<Integer, Integer>, MapRoomNode> allNodesById = new HashMap<>();
-        tracked.keySet().forEach(node -> allNodesById.put(Pair.of(node.x, node.y), node));
+        tracked.keySet().forEach(key -> {
+            String[] xy = key.split("-");
+            MapRoomNode node = AbstractDungeon.map.get(Integer.parseInt(xy[1])).get(Integer.parseInt(xy[0]));
+            allNodesById.put(Pair.of(Integer.parseInt(xy[0]), Integer.parseInt(xy[1])), node);
+        });
 
         // Now we compute reachability by using some BFS-like algorithm
-        // Note: could make this more efficient probably but I really didn't think too hard here
-        for (MapRoomNode node : tracked.keySet()) {
-            reachableMap.putIfAbsent(node, new HashSet<>());
-            HashSet<MapRoomNode> reachableFromStarterNode = reachableMap.get(node);
+        // Note: could make this more efficient probably, but I really didn't think too hard here
+        for (String key : tracked.keySet()) {
+            String[] xy = key.split("-");
+            MapRoomNode node = AbstractDungeon.map.get(Integer.parseInt(xy[1])).get(Integer.parseInt(xy[0]));
+            reachableMap.putIfAbsent(key, new HashSet<>());
+
+            HashSet<MapRoomNode> reachableFromStarterNode = reachableMap.get(key);
 
             // Initialize the queue to have the direct descendants
             Queue<MapRoomNode> queue = new ArrayDeque<>(collectDirectChildren(node, allNodesById));
@@ -235,17 +247,19 @@ public class MapTileManager {
         if (currNode == null)
             return;
 
-        HashSet<MapRoomNode> reachableNodes = reachableMap.get(currNode);
+        HashSet<MapRoomNode> reachableNodes = reachableMap.get(currNode.x + "-" + currNode.y);
 
         if (reachableNodes == null || reachableNodes.isEmpty())
             return;
 
-        for (Map.Entry<MapRoomNode, MapTileMapObject> entry : tracked.entrySet()) {
-            if (entry.getKey() == currNode) {
+        for (Map.Entry<String, MapTileMapObject> entry : tracked.entrySet()) {
+            String[] xy = entry.getKey().split("-");
+            MapRoomNode node = AbstractDungeon.map.get(Integer.parseInt(xy[1])).get(Integer.parseInt(xy[0]));
+            if (node == currNode) {
                 entry.getValue().isReachable = false;
             }
             else {
-                entry.getValue().isReachable = reachableNodes.contains(entry.getKey());
+                entry.getValue().isReachable = reachableNodes.contains(node);
             }
         }
     }
@@ -308,9 +322,7 @@ public class MapTileManager {
     }
 
     private static boolean hasHighlightedType(RoomType type) {
-//        System.out.println("Checking all highlights of type " + type);
         for (MapTileMapObject obj : tracked.values()) {
-//            System.out.println("  Checking obj " + obj.type + ", isH " + obj.isHighlighted);
             if (obj.type == type && obj.isHighlighted)
                 return true;
         }
@@ -350,9 +362,7 @@ public class MapTileManager {
         else
             EaselSoundHelper.uiClick2();
 
-//        System.out.println("Highlight all highlights of type " + type + " to " + val);
         for (MapTileMapObject obj : tracked.values()) {
-//            System.out.println("  Checking " + obj.type + ", isH: " + obj.isHighlighted);
             if (obj.type == type) {
                 obj.isHighlighted = val;
 
@@ -395,15 +405,17 @@ public class MapTileManager {
             return;
 
 
-        HashSet<MapRoomNode> reachableAboveSrc = reachableMap.get(src);
+        HashSet<MapRoomNode> reachableAboveSrc = reachableMap.get(src.x + "," + src.y);
 
-        for (Map.Entry<MapRoomNode, MapTileMapObject> entry : tracked.entrySet()) {
+        for (Map.Entry<String, MapTileMapObject> entry : tracked.entrySet()) {
+            String[] xy = entry.getKey().split("-");
+            MapRoomNode node = AbstractDungeon.map.get(Integer.parseInt(xy[1])).get(Integer.parseInt(xy[0]));
             // Don't care about unhighlighted nodes
             if (!entry.getValue().isHighlighted)
                 continue;
 
             // Check if this entry is reachable FROM the src node
-            if (reachableAboveSrc != null && reachableAboveSrc.contains(entry.getKey()))
+            if (reachableAboveSrc != null && reachableAboveSrc.contains(node))
                 continue;
 
             // Check if this entry reaches TO the src node
@@ -425,5 +437,9 @@ public class MapTileManager {
 
     public static void clear() {
         tracked.clear();
+    }
+
+    public static boolean isTrackedEmpty() {
+        return tracked.isEmpty();
     }
 }
