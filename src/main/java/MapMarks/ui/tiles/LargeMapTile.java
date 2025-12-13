@@ -11,7 +11,6 @@ import easel.ui.AbstractWidget;
 import easel.ui.AnchorPosition;
 import easel.ui.InterpolationSpeed;
 import easel.ui.graphics.LayeredTextureWidget;
-import easel.utils.colors.EaselColors;
 
 public class LargeMapTile extends AbstractWidget<LargeMapTile> {
     // Not statically defined because I'm probably going to mess with the tile images a ton still
@@ -21,7 +20,6 @@ public class LargeMapTile extends AbstractWidget<LargeMapTile> {
 
     private LayeredTextureWidget ltw;
 
-//    private Color baseColor = EaselColors.withOpacity(ColorDatabase.DEFAULT_RED, 0.2f);
     private Color baseColor = ColorEnum.RED.get();
 
     private static final Color trimColor = ColorDatabase.UI_TRIM;
@@ -66,9 +64,5 @@ public class LargeMapTile extends AbstractWidget<LargeMapTile> {
     @Override
     protected void renderWidget(SpriteBatch sb) {
         ltw.render(sb);
-
-//        EaselGraphicsHelper.drawDebugRects(sb, this);
-//        if (hb != null)
-//            hb.render(sb);
     }
 }

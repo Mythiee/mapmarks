@@ -7,27 +7,25 @@ import MapMarks.utils.ColorEnum;
 import MapMarks.utils.MapMarksTextureDatabase;
 import MapMarks.utils.SoundHelper;
 import basemod.BaseMod;
-import basemod.interfaces.*;
-import com.badlogic.gdx.graphics.Color;
+import basemod.interfaces.AddAudioSubscriber;
+import basemod.interfaces.PostInitializeSubscriber;
+import basemod.interfaces.PostUpdateSubscriber;
+import basemod.interfaces.RenderSubscriber;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
-import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import com.megacrit.cardcrawl.map.LegendItem;
 import easel.ui.AnchorPosition;
 import easel.utils.EaselInputHelper;
 import easel.utils.EaselSoundHelper;
-import easel.utils.colors.EaselColors;
 import easel.utils.textures.TextureLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-
 @SpireInitializer
-public class MapMarks implements PostInitializeSubscriber, PostUpdateSubscriber, RenderSubscriber, AddAudioSubscriber, StartGameSubscriber {
+public class MapMarks implements PostInitializeSubscriber, PostUpdateSubscriber, RenderSubscriber, AddAudioSubscriber {
     public static final Logger logger = LogManager.getLogger(MapMarks.class);
 
     public static void initialize() {
@@ -45,9 +43,7 @@ public class MapMarks implements PostInitializeSubscriber, PostUpdateSubscriber,
 
     @Override
     public void receivePostInitialize() {
-//        logger.info("Hello, world");
         TextureLoader.loadTextures(MapMarksTextureDatabase.values());
-        //Easel.initialize();
 
         menu = new RadialMenu();
         legendObject = new LegendObject()
@@ -64,18 +60,12 @@ public class MapMarks implements PostInitializeSubscriber, PostUpdateSubscriber,
                 .anchoredAt(1575, 767, AnchorPosition.CENTER)
         ;
 
-//        System.out.println("Settings.xScale: " + Settings.xScale);
-//        System.out.println("Settings.yScale: " + Settings.yScale);
-//        System.out.println("Settings.scale: " + Settings.scale);
-
         paintContainer = new PaintContainer();
     }
 
     @Override
     public void receiveRender(SpriteBatch sb) {
         menu.render(sb);
-
-//        paintContainer.render(sb);
     }
 
     private boolean rightMouseDown = false;
@@ -112,7 +102,7 @@ public class MapMarks implements PostInitializeSubscriber, PostUpdateSubscriber,
             return;
         }
 
-        // Transition: Started right clicking
+        // Transition: Started right-clicking
         if (InputHelper.isMouseDown_R && !rightMouseDown) {
             rightMouseDown = true;
 
@@ -129,18 +119,18 @@ public class MapMarks implements PostInitializeSubscriber, PostUpdateSubscriber,
                 if (MapTileManager.hoveredTileIsHighlighted()) {
                     // Check if we're doing a repaint (TODO: config option)
                     if (MapTileManager.isARepaint()) {
-                        // start highlighting everything, starting with this hovered unhighlighted node
+                        // start highlighting everything, starting with this hovered un-highlighted node
                         rightMouseDownMode = RightMouseDownMode.HIGHLIGHTING;
                         MapTileManager.setHoveredTileHighlightStatus(true);
                     } else {
-                        // start unhighlighting everything, starting with this hovered highlighted node
+                        // start un-highlighting everything, starting with this hovered highlighted node
                         rightMouseDownMode = RightMouseDownMode.UNHIGHLIGHTING;
                         MapTileManager.setHoveredTileHighlightStatus(false);
                     }
                 }
                 // Tile under cursor exists, but is not highlighted
                 else {
-                    // start highlighting everything, starting with this hovered unhighlighted node
+                    // start highlighting everything, starting with this hovered un-highlighted node
                     rightMouseDownMode = RightMouseDownMode.HIGHLIGHTING;
                     MapTileManager.setHoveredTileHighlightStatus(true);
                 }
@@ -167,7 +157,7 @@ public class MapMarks implements PostInitializeSubscriber, PostUpdateSubscriber,
             }
 
         }
-        // Transition: Stopped right clicking
+        // Transition: Stopped right-clicking
         else if (!InputHelper.isMouseDown_R && rightMouseDown) {
             rightMouseDown = false;
             rightMouseDownMode = RightMouseDownMode.NONE;
@@ -176,8 +166,6 @@ public class MapMarks implements PostInitializeSubscriber, PostUpdateSubscriber,
             if (menu.isMenuOpen()) {
                 menu.close();
                 SoundHelper.playRadialCloseSound();
-
-//                System.out.println("Menu closed. Selected index is: " + menu.getSelectedIndex());
 
                 // Update the results with the new selection
                 int selectedIndex = menu.getSelectedIndex();
@@ -209,11 +197,5 @@ public class MapMarks implements PostInitializeSubscriber, PostUpdateSubscriber,
     @Override
     public void receiveAddAudio() {
         BaseMod.addAudio("MAP_MARKS_CLICK", "MapMarks/output_2.wav");
-    }
-
-    // If start a new game, clear the old map tile markers first
-    @Override
-    public void receiveStartGame() {
-
     }
 }

@@ -17,27 +17,6 @@ import javassist.expr.MethodCall;
 
 public class MapRoomNodePatches {
 
-//    @SpirePatch(
-//            clz = MapRoomNode.class,
-//            method = SpirePatch.CONSTRUCTOR
-//    )
-//    public static class MapRoomNodeConstructorPatch {
-//        @SpirePostfixPatch
-//        public static void Postfix(MapRoomNode node, int x, int y) {
-//            // TODO: construct one MapTileNode (my ui) for each MapRoomNode (the base game object)
-//            // these need to be tracked somewhere and cleared appropriately
-//            //
-//            // potentially also in MapGenerator::createNodes
-//
-//            // Not special starting floors or boss floors
-//            if (x >= 0 && y >= 0) {
-//                MapTileManager.track(node);
-//            }
-//
-//            CardCrawlGame.dungeon.getMap();
-//        }
-//    }
-
     @SpirePatch(
             clz = AbstractDungeon.class,
             method = "generateMap"
@@ -45,13 +24,18 @@ public class MapRoomNodePatches {
     public static class PostGenerateDungeonPatch {
         @SpirePostfixPatch
         public static void Postfix() {
-            MapTileManager.clear();
-            MapMarks.paintContainer.clear();
+            // If start a new game or re-open the game and save load, clear the tile markers
+            if (!MapTileManager.isSaveLoaded || MapTileManager.isTrackedEmpty()) {
+                // reset load status
+                MapTileManager.isSaveLoaded = false;
+                MapTileManager.clear();
+                MapMarks.paintContainer.clear();
 
-            AbstractDungeon.map.forEach(list -> list.forEach(node -> {
-                if (node.x >= 0 && node.y >= 0 && !node.getEdges().isEmpty())
-                    MapTileManager.track(node);
-            }));
+                AbstractDungeon.map.forEach(list -> list.forEach(node -> {
+                    if (node.x >= 0 && node.y >= 0 && !node.getEdges().isEmpty())
+                        MapTileManager.track(node);
+                }));
+            }
 
             MapTileManager.initializeReachableMap();
             MapTileManager.computeReachable();
@@ -86,18 +70,6 @@ public class MapRoomNodePatches {
             }));
         }
     }
-
-//    @SpirePatch(
-//            clz = MapRoomNode.class,
-//            method = "update"
-//    )
-//    public static class MapRoomNodeUpdatePatch {
-//        @SpirePostfixPatch
-//        public static void Postfix(MapRoomNode node) {
-//            // use this node as a key into our UI storage map, and update the map tile accordingly.
-//            // if this node's node.hb is hovered, disable the radial menu from being openable, start tracking global rightclick/drags
-//        }
-//    }
 
     @SpirePatch(
             clz = MapRoomNode.class,
@@ -195,81 +167,8 @@ public class MapRoomNodePatches {
                 }
             };
         }
-
-//        @SpirePostfixPatch
-//        public static void Postfix(MapRoomNode node, SpriteBatch sb) {
-//            // x and y definitely need to be xScale, yScale
-//            // the offset is not correct and is probably resolution dependent
-//
-//            MapTileManager.tryRender(sb,
-//                    node,
-//                    computeXFromNode(node) + 32.0f,
-//                    computeYFromNode(node) + 32.0f
-//            );
-//        }
-//            // TODO: render just before this line (near the start of MapRoomNode::render)
-//            //   [will need an instrument patch probably]
-//            // this.renderEmeraldVfx(sb);
-//
-//
-//            // TODO: scaling here is probably incorrect
-////            MapTileManager.tryRender(sb, node, x / Settings.xScale, y / Settings.scale);
-//
-////            sb.draw(this.room.getMapImgOutline(),
-////                    (float)this.x * SPACING_X + OFFSET_X - 64.0f + this.offsetX,
-////                    (float)this.y * Settings.MAP_DST_Y + OFFSET_Y + DungeonMapScreen.offsetY - 64.0f + this.offsetY,
-////                    64.0f,
-////                    64.0f,
-////                    128.0f,
-////                    128.0f,
-////                    this.scale * Settings.scale,
-////                    this.scale * Settings.scale,
-////                    0.0f,
-////                    0,
-////                    0,
-////                    128,
-////                    128,
-////                    false,
-////                    false);
-//        }
-
-//        private static final String replacement =
-//                "{ "
-////                        + "$1 = "
-////                        + "float tileX = " + MapRoomNodeRenderPatch.class.getName() + ".computeXFromNode(this);"
-////                        + "float tileY = " + MapRoomNodeRenderPatch.class.getName() + ".computeYFromNode(this);"
-////                        + MapTileManager.class.getName() + ".tryRender(sb, this, tileX / Settings.xScale, tileY / Settings.scale);"
-////                        + MapTileManager.class.getName() + ".tryRender(sb, this, MapRoomNodeRenderPatch.computeXFromNode(this) / Settings.xScale, MapRoomNodeRenderPatch.computeYFromNode(this) / Settings.scale);"
-//                        + MapTileManager.class.getName() + ".tryRender(sb, this, " + MapRoomNodeRenderPatch.class.getName() + ".computeXFromNode(this) / " + Settings.class.getName() + ".xScale, " + MapRoomNodeRenderPatch.class.getName() + ".computeYFromNode(this) / " + Settings.class.getName() + ".scale);"
-//                        + "$_ = $proceed($$);"
-//                        + " }";
-//
-//        public static ExprEditor Instrument() {
-//            return new ExprEditor() {
-//                @Override
-//                public void edit(MethodCall m) throws CannotCompileException {
-//                    if (m.getClassName().equals(MapRoomNode.class.getName()) && m.getMethodName().equals("renderEmeraldVfx")) {
-//                        m.replace(replacement);
-//                    }
-//                }
-//            };
-//        }
     }
 
-    // note: this didn't work in every case, trying something else
-//    @SpirePatch(
-//            clz = MapRoomNode.class,
-//            method = "playNodeSelectedSound"
-//    )
-//    public static class MapRoomNodeReachabilityPatch {
-//        @SpirePostfixPatch
-//        public static void Postfix(MapRoomNode _node) {
-//            MapTileManager.computeReachable();
-//        }
-//
-//    }
-
-    //    public static void setCurrMapNode(MapRoomNode currMapNode)
     @SpirePatch(
             clz = AbstractDungeon.class,
             method = "setCurrMapNode"
