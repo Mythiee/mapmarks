@@ -26,8 +26,6 @@ public class MapRoomNodePatches {
         public static void Postfix() {
             // If start a new game or re-open the game and save load, clear the tile markers
             if (!MapTileManager.isSaveLoaded || MapTileManager.isTrackedEmpty()) {
-                // reset load status
-                MapTileManager.isSaveLoaded = false;
                 MapTileManager.clear();
                 MapMarks.paintContainer.clear();
 
@@ -36,6 +34,8 @@ public class MapRoomNodePatches {
                         MapTileManager.track(node);
                 }));
             }
+            // reset load status
+            MapTileManager.isSaveLoaded = false;
 
             MapTileManager.initializeReachableMap();
             MapTileManager.computeReachable();
