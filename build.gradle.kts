@@ -2,6 +2,12 @@ plugins {
     java
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+
 /*
 Setup environment variables
 * stsInstallLocation should point to the steam install directory
