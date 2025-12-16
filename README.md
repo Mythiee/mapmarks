@@ -1,3 +1,7 @@
+Language:
+[English](README.md) |
+[简体中文](README.zh-CN.md)
+
 # Map Marks
 
 Map Marks is a WIP Slay the Spire mod for map node highlighting. It is a spiritual successor and an attempt to improve upon two previous mods: "Highlight Paths" (by reina - [Steam workshop link](https://steamcommunity.com/sharedfiles/filedetails/?id=1611047977)) and "Better Paths" (the world's worst titled mod by me - [Github link](https://github.com/casey-c/sts_betterpaths)).
